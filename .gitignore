@@ -5,3 +5,10 @@ pictures_temp/
 *.sh
 node_modules/
 .vscode/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
