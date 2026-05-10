@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台語色水學習網 - 視覺化顏色博物館</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>台語色水學習網</h1>
+            <p class="subtitle">探索台語繽紛的色彩世界</p>
+        </header>
+
+        <nav id="category-nav" class="nav-container">
+            <div class="category-row">
+                <button class="nav-btn active" data-category="all">全</button>
+                <!-- Categories will be injected here -->
+            </div>
+            <div class="nav-controls">
+                <button id="game-btn" class="nav-btn accent wide-btn">🎮 色水配對挑戰</button>
+            </div>
+        </nav>
+
+        <main id="color-grid" class="color-grid">
+            <!-- Cards will be injected here -->
+        </main>
+
+        <!-- Modal for Detail View -->
+        <div id="modal-overlay" class="modal-overlay hidden">
+            <div class="modal-content">
+                <button class="modal-close" id="modal-close">&times;</button>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
