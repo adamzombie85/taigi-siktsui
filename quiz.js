@@ -44,9 +44,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const response = await fetch('色水_categorized.json?v=' + new Date().getTime());
         colorData = await response.json();
         
-        // Prepare pool
+        // Prepare pool - now include items with EITHER image OR hex code
         Object.keys(colorData).forEach(cat => {
-            const itemsInCat = colorData[cat].filter(item => item.圖片路徑);
+            const itemsInCat = colorData[cat].filter(item => item.圖片路徑 || item.色號);
             if (itemsInCat.length > 0) {
                 categoryPool.push({ name: cat, items: itemsInCat });
             }
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         if (allItemsWithImages.length < 4) {
-            questionEl.textContent = "圖片不足，無法開始遊戲。";
+            questionEl.textContent = "資料不足，無法開始遊戲。";
             return;
         }
 
@@ -88,12 +88,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Update score board to show progress
         scoreEl.innerHTML = `${score} (第 ${questionCount}/${MAX_QUESTIONS} 題)`;
 
-        // Pick a category randomly from those that have images
-        // Shuffling pool each time might be better or just pick random index
+        // Pick a category randomly
         const randomCatObj = categoryPool[Math.floor(Math.random() * categoryPool.length)];
         const itemsInCat = randomCatObj.items;
         currentTarget = itemsInCat[Math.floor(Math.random() * itemsInCat.length)];
-        currentTarget.category = randomCatObj.name; // Ensure category is set
+        currentTarget.category = randomCatObj.name;
 
         // Show Kanji + Pronunciation
         questionEl.innerHTML = `
@@ -106,7 +105,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         let distractors = [];
         let usedCategories = new Set([currentTarget.category]);
         
-        // Get all items not in current target's category
         let distractorPool = allItemsWithImages.filter(item => item.category !== currentTarget.category);
         distractorPool.sort(() => Math.random() - 0.5);
 
@@ -117,7 +115,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // Fill if not enough unique categories
         if (distractors.length < 3) {
             let backupPool = allItemsWithImages.filter(item => item.詞目 !== currentTarget.詞目);
             backupPool.sort(() => Math.random() - 0.5);
@@ -127,14 +124,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // Shuffle options
         let options = [currentTarget, ...distractors];
         options.sort(() => Math.random() - 0.5);
 
         options.forEach(opt => {
             const card = document.createElement('div');
             card.className = 'option-card';
-            card.innerHTML = `<div class="option-visual" style="background-image: url('${opt.圖片路徑}')"></div>`;
+            
+            // If image exists, show it; otherwise show solid color
+            if (opt.圖片路徑) {
+                card.innerHTML = `<div class="option-visual" style="background-image: url('${opt.圖片路徑}')"></div>`;
+            } else {
+                card.innerHTML = `<div class="option-visual" style="background-color: ${opt.色號}"></div>`;
+            }
+            
             card.onclick = () => checkAnswer(opt, card);
             optionsEl.appendChild(card);
         });
@@ -156,7 +159,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Highlight correct one
             Array.from(optionsEl.children).forEach(child => {
-                if (child.innerHTML.includes(currentTarget.圖片路徑)) {
+                const visual = child.querySelector('.option-visual');
+                const isCorrectImage = currentTarget.圖片路徑 && visual.style.backgroundImage.includes(currentTarget.圖片路徑);
+                const isCorrectColor = !currentTarget.圖片路徑 && visual.style.backgroundColor.toLowerCase() === currentTarget.色號.toLowerCase();
+                
+                if (isCorrectImage || isCorrectColor) {
                     child.style.borderColor = '#4ade80';
                 }
             });
@@ -171,7 +178,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             nextBtn.textContent = '後一題';
         }
 
-        // Automatic progression after 2 seconds
         setTimeout(() => {
             if (questionCount === MAX_QUESTIONS) {
                 showResult();
